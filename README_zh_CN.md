@@ -31,8 +31,10 @@
 </p>
 
 ## 🔥🔥🔥 最新消息
-- **September 28, 2025**: 📖 我们发布了 HunyuanImage-3.0 的技术报告
-- **September 28, 2025**: 🚀 我们开源了 HunyuanImage-3.0 的推理代码与模型权重，以及基于 FlashInfer 的加速推理方案
+
+- **2025年10月30日**: 🚀 我们发布了 HunyuanImage-3.0 的 [vLLM 加速版本](./vllm_infer/README.md)，实现显著的推理加速。
+- **2025年09月28日**: 📖 我们发布了 HunyuanImage-3.0 的[技术报告](https://arxiv.org/pdf/2509.23951)。
+- **2025年09月28日**: 🎉 我们开源了 HunyuanImage-3.0 的[推理代码](https://github.com/Tencent-Hunyuan/HunyuanImage-3.0)与[模型权重](https://huggingface.co/tencent/HunyuanImage-3.0)，以及基于 FlashInfer 的加速推理方案。
 
 
 ## 📑 开源计划
@@ -41,7 +43,7 @@
   - [x] 推理代码 
   - [x] 模型权重（HunyuanImage-3.0）
   - [ ] 模型权重（HunyuanImage-3.0-Instruct，带推理能力）
-  - [ ] VLLM 加速版本
+  - [x] vLLM 加速版本
   - [ ] 蒸馏版本权重
   - [ ] 图像编辑能力
   - [ ] 多轮交互能力
@@ -73,8 +75,6 @@
 ---
 
 ## 📖 概览
-
-**HunyuanImage-3.0** is a groundbreaking native multimodal model that unifies multimodal understanding and generation within an autoregressive framework. Our text-to-image module achieves performance **comparable to or surpassing** leading closed-source models.
 
 **HunyuanImage-3.0** 是一个突破性的原生多模态模型，它在自回归框架内统一了多模态理解和生成任务。它的文生图能力实现了与领先的闭源模型**相当或更优**的性能。
 
