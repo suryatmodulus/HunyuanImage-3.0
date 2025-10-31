@@ -8,12 +8,15 @@ import argparse
 import json
 import requests
 import base64
+import random
+
+
+def default(value, default_value):
+    return value if value is not None else default_value
+
 
 # ------------------ Default Parameters ------------------
 DEFAULTS = {
-    "width": 1024,
-    "height": 1024,
-    "seed": 349824,
     "prompt": "Generate an image: In a colosseum, a woman and a bear engage in combat, illuminated by torchlight. Rendered in 3D style.",
     "url": "http://0.0.0.0:8000/v1/chat/completions",
     "model": "vllm_hunyuan_image3",
@@ -30,50 +33,13 @@ TEMPLATES_PRETRAIN = {
         "{% endif %}"
         "{% endfor %}"
     ),
-    "recaption": (
-        "{% for message in messages %}"
-        "{% if message['role'] == 'user' %}"
-        "<|startoftext|>{{ message['content'] }}<recaption>"
-        "{% endif %}"
-        "{% endfor %}"
-    ),
     "auto": (
         "{% for message in messages %}"
         "{% if message['role'] == 'user' %}"
-        "<|startoftext|>[{{ message['content'] }}]<boi><image_shape_1024>"
+        "<|startoftext|>{{ message['content'] }}<boi><image_shape_1024>"
         "{% endif %}"
         "{% endfor %}"
     ),
-}
-
-TEMPLATES_INSTRUCT = {
-    "image": """\
-{% for message in messages %}
-    {% if message['role'] == 'user' %}
-        <|startoftext|>User: {{ message['content'] }}\n\nAssistant: 
-    {% elif message['role'] == 'assistant' %}
-        <answer><boi><image_shape_1024><image_ratio_16><timestep>[<img>]{4096}<eoi>
-    {% endif %}
-{% endfor %}
-""",
-    "recaption": """\
-    {% for message in messages %}
-        {% if message['role'] == 'user' %}
-            <|startoftext|>User: {{ message['content'] }}\n\nAssistant: <recaption>
-        {% elif message['role'] == 'assistant' %}
-            {{ message['content'] }}<|eos|>
-        {% endif %}
-    {% endfor %}
-    """,
-    "auto": """\
-{% for message in messages %}
-    {% if message['role'] == 'user' %}
-        <|startoftext|>User: {{ message['content'] }}\n\nAssistant: 
-    {% elif message['role'] == 'assistant' %}
-        <answer><boi><image_shape_1024><image_ratio_16><timestep>[<img>]{4096}<eoi>
-    {% endif %}
-{% endfor %}
-""",
 }
 
 
@@ -82,16 +48,16 @@ def build_payload(args):
     if args.sequence_template == "pretrain":
         templates = TEMPLATES_PRETRAIN
     else:
-        templates = TEMPLATES_INSTRUCT
+        raise NotImplementedError(f"Sequence template {args.sequence_template} not implemented.")
 
     chat_template = templates[args.bot_task]
-    image_size = f"{args.height}x{args.width}"
     task_extra_kwargs = {
-        "image_size": image_size,
         "diff_infer_steps": args.diff_infer_steps,
         "use_system_prompt": args.use_system_prompt,
         "bot_task": args.bot_task,
     }
+    if args.bot_task == "image":
+        task_extra_kwargs["image_size"] = f"{default(args.height, 1024)}x{default(args.width, 1024)}"
 
     max_tokens = args.max_tokens
     if args.bot_task in ['image', 'auto']:
@@ -105,7 +71,7 @@ def build_payload(args):
         ],
         "max_completion_tokens": max_tokens,
         "temperature": args.temperature,
-        "seed": args.seed,
+        "seed": default(args.seed, random.randint(1, 10_000_000)),
         "chat_template": chat_template,
         "task_type": "hunyuan_image3",
         "task_extra_kwargs": task_extra_kwargs,
@@ -116,9 +82,9 @@ def build_payload(args):
 def main():
     parser = argparse.ArgumentParser(description="Call vLLM-hunyuan_image3 text-to-image API")
     parser.add_argument("--sequence_template", choices=["pretrain", "instruct"], default="pretrain")
-    parser.add_argument("--width", type=int, default=DEFAULTS["width"])
-    parser.add_argument("--height", type=int, default=DEFAULTS["height"])
-    parser.add_argument("--seed", type=int, default=DEFAULTS["seed"])
+    parser.add_argument("--width", type=int, help="Image width")
+    parser.add_argument("--height", type=int, help="Image height")
+    parser.add_argument("--seed", type=int, help="Random seed")
     parser.add_argument("--prompt", default=DEFAULTS["prompt"])
     parser.add_argument("--diff-infer-steps", type=int, default=50, help="Number of inference steps")
     parser.add_argument("--use-system-prompt", type=str, default="None",
